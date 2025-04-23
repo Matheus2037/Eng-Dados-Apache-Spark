@@ -4,18 +4,21 @@ Bem-vindo à documentação oficial do projeto de **Engenharia de Dados com Apac
 
 ## Visão Geral do Projeto
 
-Este projeto demonstra como utilizar o **Apache Spark** em conjunto com **Delta Lake** para criar, manipular e gerenciar dados de forma eficiente, confiável e escalável. A combinação dessas tecnologias proporciona recursos avançados como:
+Este projeto demonstra como utilizar o **Apache Spark** em conjunto com **Delta Lake** e **Apache Iceberg** para criar, manipular e gerenciar dados de forma eficiente, confiável e escalável. A combinação dessas tecnologias proporciona recursos avançados como:
 
 - Transações ACID em dados armazenados em data lakes
 - Controle de versão e viagem no tempo (time travel)
 - Upserts e merges eficientes
-- Otimização de esquema e compactação de arquivos
+- Evolução de esquema e compactação de arquivos
 - Integração perfeita com o ecossistema Spark
+- Diferentes abordagens para gerenciamento de tabelas em data lakes
 
 !!! info "Sobre o Delta Lake"
     O [Delta Lake](https://delta.io/) é uma camada de armazenamento de código aberto que traz confiabilidade ao seu data lake. Ele fornece transações ACID, manipulação de metadados escalável e unifica processamento de dados em lote e streaming.
 
-## Por que usar Apache Spark com Delta Lake?
+!!! info "Sobre o Apache Iceberg"
+    O [Apache Iceberg](https://iceberg.apache.org/) é um formato de tabela aberta para conjuntos de dados analíticos de grande escala. Ele oferece controle de versão, evolução de esquema, operações transacionais ACID e particionamento oculto.
+## Por que usar Apache Spark com Delta Lake e Apache Iceberg?
 
 O Apache Spark é uma das ferramentas mais populares para processamento de big data, oferecendo:
 
@@ -24,11 +27,21 @@ O Apache Spark é uma das ferramentas mais populares para processamento de big d
 - **Generalidade**: Suporte a várias cargas de trabalho como SQL, streaming, machine learning e processamento de grafos
 - **Processamento unificado**: Uma única engine para diversos casos de uso
 
-Quando combinado com o Delta Lake, o Spark ganha recursos adicionais que resolvem muitos desafios comuns em data lakes tradicionais:
+Quando combinado com formatos de tabela modernos como Delta Lake e Apache Iceberg, o Spark ganha recursos adicionais que resolvem muitos desafios comuns em data lakes tradicionais:
+
+### Benefícios do Delta Lake:
 
 - **Confiabilidade**: Transações ACID garantem consistência de dados mesmo em caso de falhas
 - **Qualidade de dados**: Restrições de esquema evitam problemas com dados mal-formados
 - **Auditoria**: Histórico completo de alterações nos dados
+- **Performance**: Otimizações específicas para consultas e ingestões de dados
+
+### Benefícios do Apache Iceberg:
+
+- **Formato aberto**: Projeto Apache de código aberto com ampla adoção na indústria
+- **Particionamento oculto**: O particionamento é gerenciado automaticamente pelo Iceberg
+- **Evolução de esquema**: Suporte robusto para alterações de esquema sem comprometer dados existentes
+- **SQL nativo**: Operações avançadas disponíveis diretamente via SQL
 - **Performance**: Otimizações específicas para consultas e ingestões de dados
 
 ## Estrutura da Documentação

@@ -77,6 +77,7 @@ poetry install
 Este comando criará um ambiente virtual e instalará as seguintes dependências principais:
 - **pyspark (3.4.2)**: Motor de processamento distribuído
 - **delta-spark (2.4.0)**: Extensão do Spark para Delta Lake
+- **iceberg-spark-runtime-3.4_2.12 (1.3.0)**: Extensão do Spark para Apache Iceberg
 - **jupyterlab (4.4.0+)**: Ambiente interativo para execução de notebooks
 
 ## Ativando o Ambiente Virtual
@@ -104,9 +105,17 @@ Para verificar se tudo foi instalado corretamente:
 ```python
 import pyspark
 from delta import *
+import importlib
 
 print(f"PySpark versão: {pyspark.__version__}")
 print("Delta Lake disponível!")
+
+# Verificar disponibilidade do Apache Iceberg
+iceberg_module = importlib.util.find_spec("pyiceberg")
+if iceberg_module is not None:
+    print("Apache Iceberg disponível!")
+else:
+    print("Apache Iceberg não encontrado. Verifique a instalação.")
 ```
 
 Se não ocorrer nenhum erro, sua instalação está funcionando corretamente.
@@ -179,7 +188,42 @@ spark = SparkSession.builder \
     .getOrCreate()
 ```
 
+### Problema: Erros relacionados ao Apache Iceberg
+
+**Sintoma**: `ClassNotFoundException`, `NoClassDefFoundError` ou erros similares ao tentar usar funcionalidades do Iceberg.
+
+**Solução**: Verifique se as dependências do Iceberg estão corretamente configuradas:
+```python
+from pyspark.sql import SparkSession
+
+# Configure a sessão Spark com suporte ao Apache Iceberg
+spark = SparkSession.builder \
+    .appName("IcebergTest") \
+    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-3.4_2.12:1.3.0") \
+    .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
+    .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog") \
+    .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog") \
+    .config("spark.sql.catalog.local.type", "hadoop") \
+    .config("spark.sql.catalog.local.warehouse", "warehouse_path") \
+    .getOrCreate()
+```
+
+### Problema: Tabelas Iceberg não são reconhecidas
+
+**Sintoma**: Erros do tipo `Table not found` ou tabelas Iceberg não podem ser lidas/escritas.
+
+**Solução**: Certifique-se de que os catálogos do Iceberg estão configurados corretamente:
+```python
+# Verifique se o catálogo está configurado
+spark.sql("SHOW NAMESPACES").show()
+
+# Crie um namespace se necessário
+spark.sql("CREATE NAMESPACE IF NOT EXISTS local.db")
+
+# Certifique-se de usar o caminho correto para as tabelas
+spark.sql("CREATE TABLE local.db.example (id INT, data STRING) USING iceberg")
+```
+
 ## Próximos Passos
 
 Após completar a instalação, você está pronto para explorar as [funcionalidades](funcionalidades.md) do projeto e executar os [exemplos](exemplos.md) disponíveis.
-

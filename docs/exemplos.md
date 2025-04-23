@@ -1,395 +1,191 @@
 # Exemplos Práticos
 
-Esta seção apresenta exemplos práticos e casos de uso realistas para utilização do Apache Spark com Delta Lake em projetos de engenharia de dados.
+Esta seção apresenta exemplos práticos implementados neste projeto, demonstrando o uso do Apache Spark com Delta Lake e Apache Iceberg para gerenciamento de dados.
 
-## Workflows Completos de Processamento de Dados
+## Exemplo com Delta Lake
 
-### Exemplo 1: Pipeline ETL para Dados de Vendas
+Este exemplo demonstra as operações básicas com o Delta Lake, conforme implementado no notebook `pyspark-delta/delta.ipynb`.
 
-Este exemplo demonstra um pipeline ETL (Extract, Transform, Load) completo para processar dados de vendas:
+### Configuração do Ambiente Spark com Delta Lake
 
 ```python
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, date_format, sum as spark_sum, when, current_timestamp
-from delta.tables import DeltaTable
+from pyspark.sql.types import StructType, StructField, StringType, FloatType
+from delta import *
 
-# Configuração da sessão Spark
-spark = (
-    SparkSession.builder
-    .appName("ETL Pipeline de Vendas")
+spark = ( 
+    SparkSession
+    .builder
+    .master("local[*]")
     .config("spark.jars.packages", "io.delta:delta-core_2.12:2.4.0")
     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    .getOrCreate()
+    .getOrCreate() 
 )
+```
 
-# 1. EXTRAÇÃO - Carregar dados de diferentes fontes
-# Dados de vendas (simulando CSV)
-vendas_df = spark.read.format("csv") \
-    .option("header", "true") \
-    .option("inferSchema", "true") \
-    .load("./dados/vendas.csv")
+### Criação do DataFrame com Dados de Clientes
 
-# Dados de produtos (simulando JSON)
-produtos_df = spark.read.format("json") \
-    .load("./dados/produtos.json")
-
-# Dados de clientes (simulando Delta existente)
-clientes_df = spark.read.format("delta") \
-    .load("./RAW/CLIENTES")
-
-# 2. TRANSFORMAÇÃO - Processar e enriquecer os dados
-# Limpeza de dados
-vendas_limpas_df = vendas_df \
-    .dropDuplicates(["ID_VENDA"]) \
-    .filter(col("VALOR") > 0) \
-    .withColumn("DATA", date_format(col("DATA"), "yyyy-MM-dd"))
-
-# Join com dados de produtos
-vendas_com_produtos_df = vendas_limpas_df \
-    .join(produtos_df, vendas_limpas_df.ID_PRODUTO == produtos_df.ID, "left") \
-    .select(
-        vendas_limpas_df["*"], 
-        col("NOME_PRODUTO"), 
-        col("CATEGORIA"),
-        col("PRECO_UNITARIO")
-    )
-
-# Join com dados de clientes
-vendas_completas_df = vendas_com_produtos_df \
-    .join(clientes_df, vendas_com_produtos_df.ID_CLIENTE == clientes_df.ID_CLIENTE, "left") \
-    .select(
-        vendas_com_produtos_df["*"],
-        col("NOME_CLIENTE"),
-        col("UF")
-    )
-
-# Agregações para análise
-resumo_por_regiao = vendas_completas_df \
-    .groupBy("UF") \
-    .agg(
-        spark_sum("VALOR").alias("VALOR_TOTAL"),
-        spark_sum(when(col("CATEGORIA") == "Eletrônicos", col("VALOR")).otherwise(0)).alias("VALOR_ELETRONICOS")
-    )
-
-# 3. CARGA - Salvar dados processados em formato Delta
-# Salvar dados detalhados
-(
-    vendas_completas_df
-    .write
-    .format("delta")
-    .mode("overwrite")
-    .partitionBy("UF", "DATA")  # Particionar por região e data
-    .save("./SILVER/VENDAS_DETALHADAS")
-)
-
-# Salvar agregações
-(
-    resumo_por_regiao
-    .write
-    .format("delta")
-    .mode("overwrite")
-    .save("./GOLD/RESUMO_VENDAS_REGIAO")
-)
-
-# 4. AUDITORIA - Registrar metadados do processo
-audit_data = [
-    (
-        "PIPELINE_VENDAS", 
-        current_timestamp(), 
-        vendas_df.count(), 
-        vendas_completas_df.count(),
-        "SUCCESS"
-    )
+```python
+data = [
+    ("ID001", "CLIENTE_X","SP","ATIVO",   250000.00),
+    ("ID002", "CLIENTE_Y","SC","INATIVO", 400000.00),
+    ("ID003", "CLIENTE_Z","DF","ATIVO",   1000000.00)
 ]
 
-audit_df = spark.createDataFrame(
-    audit_data, 
-    ["PIPELINE_ID", "TIMESTAMP", "REGISTROS_ENTRADA", "REGISTROS_SAIDA", "STATUS"]
+schema = (
+    StructType([
+        StructField("ID_CLIENTE",     StringType(),True),
+        StructField("NOME_CLIENTE",   StringType(),True),
+        StructField("UF",             StringType(),True),
+        StructField("STATUS",         StringType(),True),
+        StructField("LIMITE_CREDITO", FloatType(), True)
+    ])
 )
 
-(
-    audit_df
+df = spark.createDataFrame(data=data,schema=schema)
+df.show(truncate=False)
+```
+
+### Criação da Tabela Delta
+
+```python
+( 
+    df
     .write
     .format("delta")
-    .mode("append")
-    .save("./METADATA/AUDIT_LOGS")
+    .mode('overwrite')
+    .save("./RAW/CLIENTES")
 )
-
-print("Pipeline ETL de vendas concluído com sucesso!")
 ```
 
-### Exemplo 2: Processo de Incremento Diário de Dados
+### Operações de Insert/Update usando Merge
 
-Este exemplo demonstra como implementar um processo de carga incremental diária:
+```python
+# Dados para merge (atualização e inserção)
+new_data = [
+    ("ID001","CLIENTE_X","SP","INATIVO", 0.00),       # Atualização - cliente existente
+    ("ID002","CLIENTE_Y","SC","ATIVO",   400000.00),  # Atualização - cliente existente
+    ("ID004","CLIENTE_Z","DF","ATIVO",   5000000.00)  # Inserção - novo cliente
+]
+
+# Criar DataFrame com os novos dados
+df_new = spark.createDataFrame(data=new_data, schema=schema)
+
+# Obter referência à tabela Delta
+deltaTable = DeltaTable.forPath(spark, "./RAW/CLIENTES")
+
+# Executar operação de merge
+(
+    deltaTable.alias("dados_atuais")
+    .merge(
+        df_new.alias("novos_dados"),
+        "dados_atuais.ID_CLIENTE = novos_dados.ID_CLIENTE"
+    )
+    .whenMatchedUpdateAll()    # Atualiza todos os campos quando encontra correspondência
+    .whenNotMatchedInsertAll() # Insere novo registro quando não encontra correspondência
+    .execute()
+)
+```
+
+### Operação de Delete
+
+```python
+# Deletar registros com condição (limite de crédito menor que 400000.0)
+deltaTable.delete("LIMITE_CREDITO < 400000.0")
+```
+
+## Exemplo com Apache Iceberg
+
+Este exemplo demonstra as operações básicas com o Apache Iceberg, conforme implementado no notebook `pyspark-iceberg/pyspark-iceberg.ipynb`.
+
+### Configuração do Ambiente Spark com Apache Iceberg
 
 ```python
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_date, date_sub
-from delta.tables import DeltaTable
 
-# Configuração da sessão Spark
 spark = (
     SparkSession.builder
-    .appName("Carga Incremental")
-    .config("spark.jars.packages", "io.delta:delta-core_2.12:2.4.0")
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+    .appName("IcebergExample")
+    .master("local[*]")
+    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-3.4_2.12:1.3.0")
+    .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
+    .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")
+    .config("spark.sql.catalog.spark_catalog.type", "hadoop")
+    .config("spark.sql.catalog.spark_catalog.warehouse", "./warehouse")
     .getOrCreate()
 )
-
-# Data para filtragem incremental
-data_atual = current_date()
-data_inicio = date_sub(data_atual, 1)  # Dados de ontem
-
-# Carregar apenas registros novos da fonte
-novos_dados = (
-    spark.read.format("jdbc")
-    .option("url", "jdbc:postgresql://localhost:5432/database")
-    .option("dbtable", "vendas")
-    .option("user", "usuario")
-    .option("password", "senha")
-    .option("driver", "org.postgresql.Driver")
-    .option("query", f"SELECT * FROM vendas WHERE data_venda >= '{data_inicio}'")
-    .load()
-)
-
-# Verificar se a tabela Delta já existe
-try:
-    deltaTable = DeltaTable.forPath(spark, "./DELTA/VENDAS_HISTORICO")
-    
-    # Executar merge para atualizar registros existentes e inserir novos
-    (
-        deltaTable.alias("destino")
-        .merge(
-            novos_dados.alias("origem"),
-            "destino.ID_VENDA = origem.ID_VENDA"
-        )
-        .whenMatchedUpdateAll()
-        .whenNotMatchedInsertAll()
-        .execute()
-    )
-    
-    print(f"Carga incremental concluída. {novos_dados.count()} registros processados.")
-    
-except:
-    # Se a tabela não existir, criar pela primeira vez
-    (
-        novos_dados
-        .write
-        .format("delta")
-        .mode("overwrite")
-        .save("./DELTA/VENDAS_HISTORICO")
-    )
-    
-    print(f"Primeira carga concluída. {novos_dados.count()} registros processados.")
-
-# Otimizar a tabela após a carga
-spark.sql("OPTIMIZE delta.`./DELTA/VENDAS_HISTORICO`")
 ```
 
-## Casos de Uso Comuns em Engenharia de Dados
-
-### Caso 1: Processamento de Dados de Sensores IoT
-
-Este caso de uso demonstra como processar dados de sensores IoT que chegam em lotes frequentes:
+### Criação do DataFrame com Dados de Clientes
 
 ```python
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, window, avg, max as spark_max, min as spark_min
-from pyspark.sql.types import StructType, StructField, StringType, FloatType, TimestampType
-from delta.tables import DeltaTable
+from pyspark.sql.types import StructType, StructField, StringType, FloatType
 
-# Configuração da sessão Spark
-spark = (
-    SparkSession.builder
-    .appName("Processamento IoT")
-    .config("spark.jars.packages", "io.delta:delta-core_2.12:2.4.0")
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    .getOrCreate()
-)
+data = [
+    ("ID001", "CLIENTE_X", "SP", "ATIVO",   250000.00),
+    ("ID002", "CLIENTE_Y", "SC", "INATIVO", 400000.00),
+    ("ID003", "CLIENTE_Z", "DF", "ATIVO",   1000000.00)
+]
 
-# Definir schema dos dados de sensores
-schema_sensores = StructType([
-    StructField("device_id", StringType(), False),
-    StructField("timestamp", TimestampType(), False),
-    StructField("temperatura", FloatType(), True),
-    StructField("umidade", FloatType(), True),
-    StructField("pressao", FloatType(), True),
-    StructField("localizacao", StringType(), True)
+schema = StructType([
+    StructField("ID_CLIENTE", StringType(), True),
+    StructField("NOME_CLIENTE", StringType(), True),
+    StructField("UF", StringType(), True),
+    StructField("STATUS", StringType(), True),
+    StructField("LIMITE_CREDITO", FloatType(), True)
 ])
 
-# Carregar lote de dados de sensores
-dados_sensores = (
-    spark.read.format("json")
-    .schema(schema_sensores)
-    .load("./dados/sensores_lote_atual.json")
-)
-
-# Processar dados - calcular médias por janela de tempo e dispositivo
-metricas_por_dispositivo = (
-    dados_sensores
-    .groupBy(
-        "device_id",
-        window(col("timestamp"), "1 hour")
-    )
-    .agg(
-        avg("temperatura").alias("temp_media"),
-        spark_max("temperatura").alias("temp_max"),
-        spark_min("temperatura").alias("temp_min"),
-        avg("umidade").alias("umidade_media"),
-        avg("pressao").alias("pressao_media")
-    )
-)
-
-# Tabela delta para armazenar dados raw
-(
-    dados_sensores
-    .write
-    .format("delta")
-    .mode("append")
-    .partitionBy("device_id")
-    .save("./IOT/RAW_SENSORES")
-)
-
-# Tabela delta para armazenar métricas agregadas
-(
-    metricas_por_dispositivo
-    .write
-    .format("delta")
-    .mode("append")
-    .partitionBy("device_id")
-    .save("./IOT/METRICAS_SENSORES")
-)
-
-# Detectar anomalias (exemplo: temperatura muito alta)
-anomalias = (
-    dados_sensores
-    .filter(col("temperatura") > 90.0)
-    .select("device_id", "timestamp", "temperatura", "localizacao")
-)
-
-if anomalias.count() > 0:
-    (
-        anomalias
-        .write
-        .format("delta")
-        .mode("append")
-        .save("./IOT/ANOMALIAS")
-    )
-    print(f"Detectadas {anomalias.count()} anomalias de temperatura!")
+df = spark.createDataFrame(data=data, schema=schema)
+df.show()
 ```
 
-### Caso 2: Data Warehouse Incremental
-
-Este exemplo demonstra como construir e manter um data warehouse usando o padrão SCD (Slowly Changing Dimension) Tipo 2 com Delta Lake:
+### Criação da Tabela Iceberg
 
 ```python
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_timestamp, lit
-from delta.tables import DeltaTable
-
-# Configuração da sessão Spark
-spark = (
-    SparkSession.builder
-    .appName("Data Warehouse SCD2")
-    .config("spark.jars.packages", "io.delta:delta-core_2.12:2.4.0")
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    .getOrCreate()
-)
-
-# Carregar novos dados da dimensão clientes
-novos_clientes = (
-    spark.read.format("csv")
-    .option("header", "true")
-    .option("inferSchema", "true")
-    .load("./dados/novos_clientes.csv")
-    .withColumn("data_atualizacao", current_timestamp())
-    .withColumn("ativo", lit(True))
-)
-
-# Implementar SCD Tipo 2 (mantém histórico de mudanças)
-try:
-    # Verificar se tabela dimensão já existe
-    dim_clientes = DeltaTable.forPath(spark, "./DW/DIM_CLIENTES")
-    
-    # Identificar registros novos e alterados
-    # Atualizações são identificadas por chave igual, mas valores diferentes
-    atualizado_df = dim_clientes.toDF().alias("atual").join(
-        novos_clientes.alias("novo"),
-        "ID_CLIENTE"
-    ).where(
-        """
-        atual.ativo = true AND
-        (
-            atual.NOME_CLIENTE != novo.NOME_CLIENTE OR
-            atual.UF != novo.UF OR
-            atual.LIMITE_CREDITO != novo.LIMITE_CREDITO
-        )
-        """
-    ).select("atual.ID_CLIENTE")
-    
-    # Expirar registros atuais (marcar como inativos)
-    (
-        dim_clientes.alias("atual")
-        .merge(
-            atualizado_df.alias("atualizado"),
-            "atual.ID_CLIENTE = atualizado.ID_CLIENTE AND atual.ativo = true"
-        )
-        .whenMatched()
-        .updateExpr({"ativo": "false", "data_fim": "current_timestamp()"})
-        .execute()
-    )
-    
-    # Inserir todos os novos registros
-    (
-        novos_clientes
-        .write
-        .format("delta")
-        .mode("append")
-        .save("./DW/DIM_CLIENTES")
-    )
-    
-except Exception as e:
-    # Se a tabela não existir, criar pela primeira vez
-    # Adicionar colunas de controle para SCD Tipo 2
-    (
-        novos_clientes
-        .withColumn("data_inicio", current_timestamp())
-        .withColumn("data_fim", lit(None).cast("timestamp"))
-        .write
-        .format("delta")
-        .mode("overwrite")
-        .save("./DW/DIM_CLIENTES")
-    )
-
-# Otimizar a tabela após as operações
-spark.sql("OPTIMIZE delta.`./DW/DIM_CLIENTES`")
+# Criar tabela Iceberg usando a API DataFrame
+df.writeTo("spark_catalog.default.clientes_iceberg").using("iceberg").createOrReplace()
 ```
 
-## Integração com Diferentes Fontes de Dados
-
-### Exemplo 1: Integração com Bancos de Dados Relacionais
-
-Este exemplo demonstra como integrar dados de um banco PostgreSQL com Delta Lake:
+### Operação de Insert (Append)
 
 ```python
-from pyspark.sql import SparkSession
-from delta.tables import DeltaTable
+# Dados para inserção
+new_data = [
+    ("ID004", "CLIENTE_NEW", "RJ", "ATIVO", 999999.00)
+]
 
-# Configuração da sessão Spark
-spark = (
-    SparkSession.builder
-    .appName("Integração PostgreSQL")
-    .config("spark.jars.packages", "io.delta:delta-core_2.12:2.4.0,org.postgresql:postgresql:42.3.1")
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    .getOrCreate()
-)
+# Criar DataFrame com os novos dados
+df_new = spark.createDataFrame(data=new_data, schema=schema)
 
-# Carregar dados do PostgreSQL
-jdbc_params = {
-    "url": "jdbc:postgresql://localhost:5432/meu_banco",
+# Inserir os novos dados na tabela Iceberg
+df_new.writeTo("spark_catalog.default.clientes_iceberg").append()
+```
 
+### Operação de Update usando SQL
+
+```python
+# Atualizar registros usando SQL
+spark.sql("""
+    UPDATE spark_catalog.default.clientes_iceberg
+    SET STATUS = 'INATIVO', LIMITE_CREDITO = 0.00
+    WHERE ID_CLIENTE = 'ID001'
+""")
+```
+
+### Operação de Delete usando SQL
+
+```python
+# Excluir registros usando SQL
+spark.sql("""
+    DELETE FROM spark_catalog.default.clientes_iceberg
+    WHERE LIMITE_CREDITO < 400000.0
+""")
+```
+
+### Operação de Consulta usando SQL
+
+```python
+# Consultar dados da tabela Iceberg
+spark.sql("SELECT * FROM spark_catalog.default.clientes_iceberg").show()
+```

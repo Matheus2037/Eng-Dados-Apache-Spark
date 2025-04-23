@@ -7,14 +7,16 @@ O projeto **Engenharia de Dados com Apache Spark** foi desenvolvido para demonst
 ### Objetivos do Projeto
 
 - Demonstrar as capacidades do Apache Spark para processamento de dados em larga escala
-- Implementar operações CRUD completas utilizando Delta Lake
+- Implementar operações CRUD completas utilizando Delta Lake e Apache Iceberg
 - Fornecer exemplos práticos de pipelines de dados e casos de uso reais
 - Servir como material educativo e de referência para profissionais de dados
+- Comparar diferentes formatos de tabela para data lakes
 
 ### Tecnologias Utilizadas
 
 - **Apache Spark**: Framework de processamento distribuído de código aberto
 - **Delta Lake**: Camada de armazenamento para confiabilidade em data lakes
+- **Apache Iceberg**: Formato de tabela de código aberto para conjuntos de dados analíticos enormes
 - **Python**: Linguagem de programação principal para implementação
 - **JupyterLab**: Ambiente interativo para exploração e documentação
 - **Poetry**: Gerenciamento de dependências do projeto
@@ -100,14 +102,6 @@ Para questões sobre o projeto, você pode:
 
 Gostaríamos de agradecer às seguintes pessoas e organizações:
 
-- A comunidade de código aberto do Apache Spark e Delta Lake por desenvolver e manter estas ferramentas incríveis
+- A comunidade de código aberto do Apache Spark, Delta Lake e Apache Iceberg por desenvolver e manter estas ferramentas incríveis
 - Todos os contribuidores que ajudaram a melhorar este projeto
 - Instituições educacionais e empresas que apoiaram o desenvolvimento deste projeto
-
-## Histórico do Projeto
-
-- **Abril 2025**: Lançamento da documentação completa
-- **Março 2025**: Adição de novos exemplos de casos de uso
-- **Fevereiro 2025**: Integração com Delta Lake
-- **Janeiro 2025**: Início do projeto com foco no Apache Spark
-

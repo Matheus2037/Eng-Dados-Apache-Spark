@@ -285,6 +285,189 @@ df_com_nova_coluna = df_atual.withColumn("DATA_ATUALIZACAO", lit("2024-04-23"))
 )
 ```
 
+## Apache Iceberg
+
+O Apache Iceberg é um formato de tabela aberta para conjuntos de dados analíticos de grande escala. Assim como o Delta Lake, o Iceberg oferece transações ACID, controle de versão de dados, e evolução de esquema, mas com algumas diferenças em sua implementação e recursos.
+
+### Visão Geral do Apache Iceberg
+
+O Iceberg foi projetado para resolver os problemas comuns encontrados em data lakes, oferecendo:
+
+- **Transações ACID**: Garantia de atomicidade, consistência, isolamento e durabilidade
+- **Schema Evolution**: Suporte para mudanças de esquema sem comprometer dados existentes
+- **Time Travel**: Acesso a versões anteriores dos dados (histórico)
+- **Particionamento Oculto**: O particionamento é gerenciado pelo Iceberg, sem exigir que os usuários conheçam os detalhes
+- **Compactação de Arquivos**: Otimização automática de arquivos pequenos
+- **Formatos de Dados Abertos**: Suporte para formatos como Parquet, Avro e ORC
+
+### Configuração do Apache Iceberg com PySpark
+
+Para utilizar o Apache Iceberg com PySpark, é necessário configurar a sessão Spark adequadamente:
+
+```python
+from pyspark.sql import SparkSession
+
+spark = (
+    SparkSession.builder
+    .appName("IcebergExample")
+    .master("local[*]")
+    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-3.4_2.12:1.3.0")
+    .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
+    .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")
+    .config("spark.sql.catalog.spark_catalog.type", "hadoop")
+    .config("spark.sql.catalog.spark_catalog.warehouse", "./warehouse")
+    .getOrCreate()
+)
+```
+
+!!! note "Dependências do Iceberg"
+    O Iceberg requer dependências específicas baseadas na versão do Spark. Para o Spark 3.4, utilizamos `iceberg-spark-runtime-3.4_2.12:1.3.0`.
+
+### Operações CRUD com Apache Iceberg
+
+#### 1. Criação de Tabelas Iceberg (Create)
+
+A criação de tabelas Iceberg é semelhante à criação de tabelas Delta, mas com a API específica do Iceberg:
+
+```python
+from pyspark.sql.types import StructType, StructField, StringType, FloatType
+
+# Dados de exemplo
+data = [
+    ("ID001", "CLIENTE_X", "SP", "ATIVO",   250000.00),
+    ("ID002", "CLIENTE_Y", "SC", "INATIVO", 400000.00),
+    ("ID003", "CLIENTE_Z", "DF", "ATIVO",   1000000.00)
+]
+
+# Definição do schema
+schema = StructType([
+    StructField("ID_CLIENTE", StringType(), True),
+    StructField("NOME_CLIENTE", StringType(), True),
+    StructField("UF", StringType(), True),
+    StructField("STATUS", StringType(), True),
+    StructField("LIMITE_CREDITO", FloatType(), True)
+])
+
+# Criação do DataFrame
+df = spark.createDataFrame(data=data, schema=schema)
+
+# Criar uma tabela Iceberg
+df.writeTo("spark_catalog.default.clientes_iceberg").using("iceberg").createOrReplace()
+```
+
+#### 2. Inserção de Dados (Insert)
+
+O Iceberg permite adicionar novos registros a uma tabela existente:
+
+```python
+# Novos dados para inserção
+new_data = [
+    ("ID004", "CLIENTE_NEW", "RJ", "ATIVO", 999999.00)
+]
+
+# Criar DataFrame com novos dados
+df_new = spark.createDataFrame(data=new_data, schema=schema)
+
+# Inserir dados na tabela Iceberg existente
+df_new.writeTo("spark_catalog.default.clientes_iceberg").append()
+```
+
+#### 3. Atualização de Dados (Update)
+
+O Iceberg suporta atualizações SQL para modificar registros existentes:
+
+```python
+# Atualizar registros com SQL
+spark.sql("""
+    UPDATE spark_catalog.default.clientes_iceberg
+    SET STATUS = 'INATIVO', LIMITE_CREDITO = 0.00
+    WHERE ID_CLIENTE = 'ID001'
+""")
+```
+
+#### 4. Exclusão de Dados (Delete)
+
+Exclusões podem ser realizadas com expressões SQL:
+
+```python
+# Excluir registros com SQL
+spark.sql("""
+    DELETE FROM spark_catalog.default.clientes_iceberg
+    WHERE LIMITE_CREDITO < 400000.0
+""")
+```
+
+#### 5. Consulta de Dados (Query)
+
+Consultar dados de tabelas Iceberg é feito com SQL padrão:
+
+```python
+# Consultar todos os registros
+spark.sql("SELECT * FROM spark_catalog.default.clientes_iceberg").show()
+```
+
+### Recursos Avançados do Apache Iceberg
+
+#### 1. Time Travel
+
+O Iceberg mantém o histórico de transações, permitindo acessar versões anteriores dos dados:
+
+```python
+# Consultar uma versão específica da tabela por ID de snapshot
+spark.read.format("iceberg").option("snapshot-id", "8485094958438453408").load("spark_catalog.default.clientes_iceberg")
+
+# Consultar por timestamp
+spark.read.format("iceberg").option("as-of-timestamp", "2023-04-23 10:00:00").load("spark_catalog.default.clientes_iceberg")
+```
+
+#### 2. Evolução de Esquema (Schema Evolution)
+
+O Iceberg suporta alterações de esquema como adicionar, renomear, ou remover colunas:
+
+```python
+# Adicionar uma nova coluna
+spark.sql("""
+    ALTER TABLE spark_catalog.default.clientes_iceberg 
+    ADD COLUMN data_cadastro TIMESTAMP
+""")
+
+# Renomear uma coluna
+spark.sql("""
+    ALTER TABLE spark_catalog.default.clientes_iceberg 
+    RENAME COLUMN UF TO estado
+""")
+```
+
+#### 3. Otimização e Manutenção
+
+O Iceberg fornece comandos para otimizar e manter tabelas:
+
+```python
+# Compactar arquivos pequenos
+spark.sql("""
+    CALL spark_catalog.system.rewrite_data_files(table => 'default.clientes_iceberg')
+""")
+
+# Remover snapshots antigos
+spark.sql("""
+    CALL spark_catalog.system.expire_snapshots(table => 'default.clientes_iceberg', 
+                                             older_than => TIMESTAMP '2023-04-01 00:00:00')
+""")
+```
+
+### Comparação entre Delta Lake e Apache Iceberg
+
+| Característica | Delta Lake | Apache Iceberg |
+| -------------- | ---------- | -------------- |
+| Transações ACID | ✓ | ✓ |
+| Time Travel | ✓ | ✓ |
+| Schema Evolution | ✓ | ✓ |
+| Compatibilidade | Integrado ao Databricks | Projeto Apache, ampla adoção |
+| Metadados | Parquet + JSON | Formato próprio (avro ou json) |
+| Particionamento | Explícito | Oculto / Gerenciado |
+| Suporte para nomes de colunas | Case insensitive | Case sensitive |
+| Otimização | Z-Order e Optimize | Ordenação e Compactação |
+
 ## Integração com SQL
 
 O Delta Lake se integra perfeitamente com SQL, permitindo usar sintaxe familiar para operações:

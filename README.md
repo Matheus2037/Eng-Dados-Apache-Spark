@@ -8,6 +8,7 @@ Este projeto utiliza **Apache Spark** em conjunto com **Delta Lake** para manipu
 - Dependências especificadas no arquivo `pyproject.toml`:
   - `pyspark==3.4.2`
   - `delta-spark==2.4.0`
+  - `iceberg-spark-runtime-3.4_2.12==1.3.0`
   - `jupyterlab>=4.4.0,<5.0.0`
 
 
@@ -27,6 +28,24 @@ O projeto inclui exemplos de como realizar operações de `MERGE` para inserir o
 
 ### 3. Exclusão de Dados
 Também é possível realizar exclusões condicionais em tabelas Delta.
+
+### 4. Apache Iceberg
+O notebook [`pyspark-iceberg.ipynb`](pyspark-iceberg/pyspark-iceberg.ipynb) demonstra como utilizar o Apache Iceberg, um formato de tabela aberta para grandes conjuntos de dados analíticos.
+
+O exemplo inclui:
+- Configuração de uma sessão Spark com suporte ao Apache Iceberg
+- Criação de tabelas no formato Iceberg
+- Operações de manipulação de dados:
+  - Inserção de novos registros
+  - Atualização de dados existentes
+  - Exclusão de registros baseada em condições
+  - Consulta de dados na tabela Iceberg
+
+O Apache Iceberg oferece recursos avançados como:
+- Controle de versão de dados (time travel)
+- Operações transacionais ACID
+- Evolução de esquema
+- Particionamento oculto
 
 ## Como Executar
 
