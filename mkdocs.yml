@@ -47,9 +47,9 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/gabrielcoelho/Eng-Dados-Apache-Spark
+      link: https://github.com/Matheus2037/Eng-Dados-Apache-Spark.git
   version:
     provider: mike
 
-repo_url: https://github.com/gabrielcoelho/Eng-Dados-Apache-Spark
+repo_url: https://github.com/Matheus2037/Eng-Dados-Apache-Spark.git
 repo_name: Eng-Dados-Apache-Spark
