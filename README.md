@@ -59,6 +59,7 @@ Caso seja o WSL use o comando:
 
 ## Documentação
 
+A documentação está disponível online em: https://Matheus2037.github.io/Eng-Dados-Apache-Spark/
 Este projeto inclui documentação completa em português brasileiro usando MkDocs com o tema Material.
 
 ### Instalação das dependências da documentação
