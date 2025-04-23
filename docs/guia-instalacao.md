@@ -85,7 +85,7 @@ Este comando criará um ambiente virtual e instalará as seguintes dependências
 Para ativar o ambiente virtual criado pelo Poetry:
 
 ```bash
-poetry shell
+poetry env activate
 ```
 
 Ou você pode executar comandos diretamente dentro do ambiente virtual sem ativá-lo permanentemente:
@@ -98,7 +98,7 @@ poetry run jupyter lab
 
 Para verificar se tudo foi instalado corretamente:
 
-1. Ative o ambiente virtual: `poetry shell`
+1. Ative o ambiente virtual: `poetry env activate`
 2. Abra o Python REPL: `python`
 3. Tente importar as bibliotecas principais:
 
@@ -128,6 +128,12 @@ Para iniciar o JupyterLab e acessar os notebooks do projeto:
 poetry run jupyter lab
 ```
 
+Ou
+
+```bash
+jupyter-lab
+```
+
 Isso abrirá o JupyterLab no seu navegador padrão. Navegue até a pasta `pyspark-delta` para acessar os notebooks de exemplo.
 
 ## Troubleshooting
@@ -155,7 +161,7 @@ export JAVA_HOME=/caminho/para/seu/jdk
 poetry env info
 
 # Ative o ambiente se necessário
-poetry shell
+poetry env activate
 ```
 
 ### Problema: O JupyterLab não consegue encontrar dependências
