@@ -295,11 +295,35 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#por-que-usar-apache-spark-com-delta-lake" class="md-nav__link">
+  <a href="#por-que-usar-apache-spark-com-delta-lake-e-apache-iceberg" class="md-nav__link">
     <span class="md-ellipsis">
-      Por que usar Apache Spark com Delta Lake?
+      Por que usar Apache Spark com Delta Lake e Apache Iceberg?
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Por que usar Apache Spark com Delta Lake e Apache Iceberg?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#beneficios-do-delta-lake" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefícios do Delta Lake:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beneficios-do-apache-iceberg" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefícios do Apache Iceberg:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -453,11 +477,35 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#por-que-usar-apache-spark-com-delta-lake" class="md-nav__link">
+  <a href="#por-que-usar-apache-spark-com-delta-lake-e-apache-iceberg" class="md-nav__link">
     <span class="md-ellipsis">
-      Por que usar Apache Spark com Delta Lake?
+      Por que usar Apache Spark com Delta Lake e Apache Iceberg?
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Por que usar Apache Spark com Delta Lake e Apache Iceberg?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#beneficios-do-delta-lake" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefícios do Delta Lake:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beneficios-do-apache-iceberg" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefícios do Apache Iceberg:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -501,19 +549,24 @@
 <h1 id="engenharia-de-dados-com-apache-spark">Engenharia de Dados com Apache Spark<a class="headerlink" href="#engenharia-de-dados-com-apache-spark" title="Permanent link">&para;</a></h1>
 <p>Bem-vindo à documentação oficial do projeto de <strong>Engenharia de Dados com Apache Spark</strong>. Este projeto demonstra a implementação de soluções de processamento de dados utilizando tecnologias modernas de big data.</p>
 <h2 id="visao-geral-do-projeto">Visão Geral do Projeto<a class="headerlink" href="#visao-geral-do-projeto" title="Permanent link">&para;</a></h2>
-<p>Este projeto demonstra como utilizar o <strong>Apache Spark</strong> em conjunto com <strong>Delta Lake</strong> para criar, manipular e gerenciar dados de forma eficiente, confiável e escalável. A combinação dessas tecnologias proporciona recursos avançados como:</p>
+<p>Este projeto demonstra como utilizar o <strong>Apache Spark</strong> em conjunto com <strong>Delta Lake</strong> e <strong>Apache Iceberg</strong> para criar, manipular e gerenciar dados de forma eficiente, confiável e escalável. A combinação dessas tecnologias proporciona recursos avançados como:</p>
 <ul>
 <li>Transações ACID em dados armazenados em data lakes</li>
 <li>Controle de versão e viagem no tempo (time travel)</li>
 <li>Upserts e merges eficientes</li>
-<li>Otimização de esquema e compactação de arquivos</li>
+<li>Evolução de esquema e compactação de arquivos</li>
 <li>Integração perfeita com o ecossistema Spark</li>
+<li>Diferentes abordagens para gerenciamento de tabelas em data lakes</li>
 </ul>
 <div class="admonition info">
 <p class="admonition-title">Sobre o Delta Lake</p>
 <p>O <a href="https://delta.io/">Delta Lake</a> é uma camada de armazenamento de código aberto que traz confiabilidade ao seu data lake. Ele fornece transações ACID, manipulação de metadados escalável e unifica processamento de dados em lote e streaming.</p>
 </div>
-<h2 id="por-que-usar-apache-spark-com-delta-lake">Por que usar Apache Spark com Delta Lake?<a class="headerlink" href="#por-que-usar-apache-spark-com-delta-lake" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">Sobre o Apache Iceberg</p>
+<p>O <a href="https://iceberg.apache.org/">Apache Iceberg</a> é um formato de tabela aberta para conjuntos de dados analíticos de grande escala. Ele oferece controle de versão, evolução de esquema, operações transacionais ACID e particionamento oculto.</p>
+</div>
+<h2 id="por-que-usar-apache-spark-com-delta-lake-e-apache-iceberg">Por que usar Apache Spark com Delta Lake e Apache Iceberg?<a class="headerlink" href="#por-que-usar-apache-spark-com-delta-lake-e-apache-iceberg" title="Permanent link">&para;</a></h2>
 <p>O Apache Spark é uma das ferramentas mais populares para processamento de big data, oferecendo:</p>
 <ul>
 <li><strong>Velocidade</strong>: Execução rápida de jobs tanto em memória quanto em disco</li>
@@ -521,11 +574,20 @@
 <li><strong>Generalidade</strong>: Suporte a várias cargas de trabalho como SQL, streaming, machine learning e processamento de grafos</li>
 <li><strong>Processamento unificado</strong>: Uma única engine para diversos casos de uso</li>
 </ul>
-<p>Quando combinado com o Delta Lake, o Spark ganha recursos adicionais que resolvem muitos desafios comuns em data lakes tradicionais:</p>
+<p>Quando combinado com formatos de tabela modernos como Delta Lake e Apache Iceberg, o Spark ganha recursos adicionais que resolvem muitos desafios comuns em data lakes tradicionais:</p>
+<h3 id="beneficios-do-delta-lake">Benefícios do Delta Lake:<a class="headerlink" href="#beneficios-do-delta-lake" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Confiabilidade</strong>: Transações ACID garantem consistência de dados mesmo em caso de falhas</li>
 <li><strong>Qualidade de dados</strong>: Restrições de esquema evitam problemas com dados mal-formados</li>
 <li><strong>Auditoria</strong>: Histórico completo de alterações nos dados</li>
+<li><strong>Performance</strong>: Otimizações específicas para consultas e ingestões de dados</li>
+</ul>
+<h3 id="beneficios-do-apache-iceberg">Benefícios do Apache Iceberg:<a class="headerlink" href="#beneficios-do-apache-iceberg" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Formato aberto</strong>: Projeto Apache de código aberto com ampla adoção na indústria</li>
+<li><strong>Particionamento oculto</strong>: O particionamento é gerenciado automaticamente pelo Iceberg</li>
+<li><strong>Evolução de esquema</strong>: Suporte robusto para alterações de esquema sem comprometer dados existentes</li>
+<li><strong>SQL nativo</strong>: Operações avançadas disponíveis diretamente via SQL</li>
 <li><strong>Performance</strong>: Otimizações específicas para consultas e ingestões de dados</li>
 </ul>
 <h2 id="estrutura-da-documentacao">Estrutura da Documentação<a class="headerlink" href="#estrutura-da-documentacao" title="Permanent link">&para;</a></h2>
