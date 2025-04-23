@@ -4,7 +4,7 @@ Este projeto utiliza **Apache Spark** em conjunto com **Delta Lake** para manipu
 
 ## Requisitos
 
-- Python 3.10 ou superior
+- Python 3.9.9
 - Dependências especificadas no arquivo `pyproject.toml`:
   - `pyspark==3.4.2`
   - `delta-spark==2.4.0`

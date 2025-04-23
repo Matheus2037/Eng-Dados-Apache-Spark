@@ -1,0 +1,55 @@
+site_name: Engenharia de Dados com Apache Spark
+site_description: Documentação de projeto utilizando Apache Spark e Delta Lake para manipulação de dados
+site_author: Gabriel Morona Coelho, Matheus da Silva Gastaldi, João Carlos Rodrigues Martins
+
+# Configurações do tema
+theme:
+  name: material
+  language: pt-BR
+  palette:
+    primary: indigo
+    accent: blue
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - search.suggest
+  icon:
+    repo: fontawesome/brands/github
+
+# Configurações de navegação
+nav:
+  - Início: index.md
+  - Guia de Instalação: guia-instalacao.md
+  - Funcionalidades: funcionalidades.md
+  - Exemplos: exemplos.md
+  - Sobre: sobre.md
+
+# Plugins
+plugins:
+  - search
+  - mkdocstrings
+
+# Extensões Markdown
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.highlight
+  - meta
+  - toc:
+      permalink: true
+
+# Configurações extras
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/gabrielcoelho/Eng-Dados-Apache-Spark
+  version:
+    provider: mike
+
+repo_url: https://github.com/gabrielcoelho/Eng-Dados-Apache-Spark
+repo_name: Eng-Dados-Apache-Spark
