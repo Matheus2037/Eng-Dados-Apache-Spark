@@ -11,6 +11,12 @@ Este projeto utiliza **Apache Spark** em conjunto com **Delta Lake** para manipu
   - `jupyterlab>=4.4.0,<5.0.0`
 
 
+## Modelo ER Delta Lake
+
+<p align="center">
+  <img src="img/modeloER.png" alt="Modelo ER" width="400"/>
+</p>
+
 ## Funcionalidades
 
 ### 1. Criação de Tabelas Delta
