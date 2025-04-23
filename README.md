@@ -35,6 +35,20 @@ Execute o seguinte comando no terminal:
     ```bash
     sudo apt install openjdk-11-jdk -y
 
+### 2. Configuração das variáveis de ambiente
+
+Adicione as variáveis `JAVA_HOME` e `PATH` ao final do seu arquivo `~/.bashrc`:
+
+    ```bash
+    echo 'export JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"' >> ~/.bashrc
+    echo 'export PATH="$JAVA_HOME/bin:$PATH"' >> ~/.bashrc
+
+### 3. Reinicie o seu terminal
+
+Caso seja o WSL use o comando:
+
+    ```bash
+      source ~/.bashrc
 
 1. Certifique-se de que todas as dependências estão instaladas. Você pode usar o Poetry para gerenciar as dependências:
    ```bash 
