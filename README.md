@@ -57,6 +57,75 @@ Caso seja o WSL use o comando:
 
 3. Abra o arquivo `delta.ipynb` e execute as células para testar as funcionalidades.
 
+## Documentação
+
+Este projeto inclui documentação completa em português brasileiro usando MkDocs com o tema Material.
+
+### Instalação das dependências da documentação
+
+O projeto já inclui as dependências necessárias para a documentação no `pyproject.toml`, mas caso precise instalá-las manualmente:
+
+```bash
+pip install mkdocs-material mkdocstrings pymdown-extensions
+```
+
+### Como acessar a documentação
+
+Para servir a documentação localmente:
+
+```bash
+# Instalar dependências se ainda não tiver feito
+poetry install
+
+# Servir a documentação localmente
+poetry run mkdocs serve
+```
+
+Acesse a documentação em seu navegador em `http://127.0.0.1:8000/`.
+
+### Construir documentação para deploy
+
+Para gerar uma versão estática da documentação para publicação:
+
+```bash
+poetry run mkdocs build
+```
+
+Os arquivos HTML gerados estarão disponíveis na pasta `site/`.
+
+### Recursos da documentação
+
+Nossa documentação utiliza os seguintes recursos:
+
+- **Material for MkDocs**: Tema moderno e responsivo com muitas funcionalidades
+- **Plugins**:
+  - `search`: Funcionalidade de busca na documentação
+  - `mkdocstrings`: Geração de documentação a partir de docstrings do código
+- **Extensões Markdown**:
+  - `admonition`: Blocos de alertas e notas destacadas
+  - `pymdownx.details`: Componentes expansíveis
+  - `pymdownx.superfences`: Suporte aprimorado para blocos de código
+  - `pymdownx.tabbed`: Abas para alternar entre diferentes conteúdos
+  - `pymdownx.highlight`: Realce de sintaxe para códigos
+
+### Estrutura da documentação
+
+A documentação está organizada nas seguintes seções:
+
+- **Página Inicial**: Visão geral do projeto
+- **Guia de Instalação**: Instruções detalhadas para configuração do ambiente
+- **Funcionalidades**: Descrição completa das capacidades do Delta Lake
+- **Exemplos**: Casos de uso práticos e exemplos de código
+- **Sobre**: Informações sobre o projeto e seus autores
+
+### Personalização da documentação
+
+Para personalizar a documentação, edite o arquivo `mkdocs.yml` na raiz do projeto. Você pode modificar:
+
+- **Tema e cores**: Altere as configurações de `theme` para modificar a aparência
+- **Navegação**: Atualize a seção `nav` para alterar a estrutura do menu
+- **Extensões**: Adicione ou remova extensões conforme necessário
+
 # Autores
  - Matheus da Silva Gastaldi matheusdasilvagastaldi@gmail.com
 
