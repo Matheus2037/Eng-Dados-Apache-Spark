@@ -32,15 +32,16 @@ Para garantir que aplicações baseadas em Spark ou outras ferramentas que depen
 
 Execute o seguinte comando no terminal:
 
-```bash
-sudo apt install openjdk-11-jdk -y
+    ```bash
+    sudo apt install openjdk-11-jdk -y
 
-. Certifique-se de que todas as dependências estão instaladas. Você pode usar o Poetry para gerenciar as dependências:
+
+1. Certifique-se de que todas as dependências estão instaladas. Você pode usar o Poetry para gerenciar as dependências:
    ```bash 
    poetry install
-. Inicie o JupyterLab para executar o notebook:
+2. Inicie o JupyterLab para executar o notebook:
 
-. Abra o arquivo `delta.ipynb` e execute as células para testar as funcionalidades.
+3. Abra o arquivo `delta.ipynb` e execute as células para testar as funcionalidades.
 
 # Autores
  - Matheus da Silva Gastaldi matheusdasilvagastaldi@gmail.com
