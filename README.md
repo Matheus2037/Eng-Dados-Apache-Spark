@@ -24,12 +24,23 @@ Também é possível realizar exclusões condicionais em tabelas Delta.
 
 ## Como Executar
 
-1. Certifique-se de que todas as dependências estão instaladas. Você pode usar o Poetry para gerenciar as dependências:
+Configure o Java 11 no Ubuntu (WSL)
+
+Para garantir que aplicações baseadas em Spark ou outras ferramentas que dependem do Java funcionem corretamente, siga os passos abaixo para instalar e configurar o Java 11 no seu ambiente Ubuntu/WSL:
+
+### 1. Instalação do Java 11
+
+Execute o seguinte comando no terminal:
+
+```bash
+sudo apt install openjdk-11-jdk -y
+
+. Certifique-se de que todas as dependências estão instaladas. Você pode usar o Poetry para gerenciar as dependências:
    ```bash 
    poetry install
-2. Inicie o JupyterLab para executar o notebook:
+. Inicie o JupyterLab para executar o notebook:
 
-3. Abra o arquivo `delta.ipynb` e execute as células para testar as funcionalidades.
+. Abra o arquivo `delta.ipynb` e execute as células para testar as funcionalidades.
 
 # Autores
  - Matheus da Silva Gastaldi matheusdasilvagastaldi@gmail.com
