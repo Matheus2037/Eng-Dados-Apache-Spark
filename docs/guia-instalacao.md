@@ -62,7 +62,7 @@ poetry --version
 Clone o repositório do projeto utilizando Git:
 
 ```bash
-git clone https://github.com/gabrielcoelho/Eng-Dados-Apache-Spark.git
+git clone https://github.com/Matheus2037/Eng-Dados-Apache-Spark.git
 cd Eng-Dados-Apache-Spark
 ```
 
